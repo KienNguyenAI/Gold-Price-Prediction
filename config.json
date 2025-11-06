@@ -1,0 +1,13 @@
+{
+  "paths": {
+    "model_path": "model/gold_model_checkpoint.keras",
+    "data_path": "data/gold_price_2013_2023"
+  },
+  "model_params": {
+    "window_size": 60
+  },
+  "text": {
+    "title": "Ứng dụng Dự đoán Giá Vàng",
+    "description": "Mô hình này..."
+  }
+}
