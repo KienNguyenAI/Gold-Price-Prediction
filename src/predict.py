@@ -1,42 +1,41 @@
 import numpy as np
 import pandas as pd
 import joblib
-import os
 from keras.models import load_model
-from src import config_loader as config  # <-- THAY ĐỔI Ở ĐÂY
+from src import config_loader as config
 
 
 def predict_next_day():
     """
-    Dự đoán giá vàng của ngày tiếp theo dựa trên 60 ngày cuối cùng.
+    Predict the next day's gold price based on the last 60 days.
     """
-    print("Đang tải mô hình, scaler và dữ liệu cuối cùng...")
+    print("Loading model, scaler, and final data...")
     try:
         model = load_model(config.MODEL_PATH)
         scaler = joblib.load(config.SCALER_PATH)
         df = pd.read_csv(config.PROCESSED_DATA_PATH)
     except IOError as e:
-        print(f"Lỗi: Không tìm thấy file. Bạn đã chạy 'python src/data_processing.py' và 'python src/train.py' chưa?")
+        print(f"Error: File not found. Have you run 'python src/data_processing.py' and 'python src/train.py'?")
         print(e)
         return
 
-    # 1. Lấy 60 ngày dữ liệu cuối cùng
+    # 1. Get last 60 days data
     last_60_days = df['Price'].values[-config.WINDOW_SIZE:]
 
-    # 2. Chuẩn hóa (Scale) dữ liệu
+    # 2. Scale the data
     last_60_days_scaled = scaler.transform(last_60_days.reshape(-1, 1))
 
-    # 3. Reshape để đưa vào mô hình
+    # 3. Reshape for model input
     X_pred = np.reshape(last_60_days_scaled, (1, config.WINDOW_SIZE, 1))
 
-    # 4. Dự đoán
+    # 4. Predict
     predicted_price_scaled = model.predict(X_pred)
 
-    # 5. Đảo ngược scale để có giá trị thực
+    # 5. Inverse scale to get actual value
     predicted_price = scaler.inverse_transform(predicted_price_scaled)
 
-    print("\n--- Dự đoán giá vàng ---")
-    print(f"Giá dự đoán cho ngày tiếp theo là: {predicted_price[0][0]:.2f}")
+    print("\n--- Gold Price Prediction ---")
+    print(f"Predicted price for the next day is: {predicted_price[0][0]:.2f}")
 
 
 if __name__ == "__main__":

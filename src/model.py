@@ -1,12 +1,12 @@
 import tensorflow as tf
 from keras import Model
 from keras.layers import Input, Dense, Dropout, LSTM
-from src import config_loader as config  # <-- THAY ĐỔI Ở ĐÂY
+from src import config_loader as config
 
 
-def define_model(window_size=config.WINDOW_SIZE):  # <-- Dùng config
+def define_model(window_size=config.WINDOW_SIZE):
     """
-    Định nghĩa kiến trúc mô hình LSTM.
+    Defines the LSTM model architecture.
     """
     input1 = Input(shape=(window_size, 1))
     x = LSTM(units=64, return_sequences=True)(input1)

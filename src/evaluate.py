@@ -5,36 +5,36 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import mean_absolute_percentage_error
 from keras.models import load_model
 import pandas as pd
-from src import config_loader as config  # <-- THAY ĐỔI Ở ĐÂY
+from src import config_loader as config
 
 
 def evaluate_model():
     """
-    Tải mô hình đã huấn luyện, dự đoán trên tập test và báo cáo kết quả.
+    Load the trained model, predict on the test set, and report results.
     """
-    print("Đang tải mô hình và dữ liệu test...")
+    print("Loading model and test data...")
     model = load_model(config.MODEL_PATH)
     scaler = joblib.load(config.SCALER_PATH)
     X_test = np.load(os.path.join(config.FINAL_DATA_DIR, 'X_test.npy'))
     y_test_scaled = np.load(os.path.join(config.FINAL_DATA_DIR, 'y_test.npy'))
 
-    # 2. Dự đoán
+    # 2. Predict
     y_pred_scaled = model.predict(X_test)
 
-    # 3. Đánh giá (scaled)
+    # 3. Evaluate (scaled)
     mape = mean_absolute_percentage_error(y_test_scaled, y_pred_scaled)
     accuracy = 1 - mape
     print(f"Test Accuracy (scaled): {accuracy * 100:.2f}%")
 
-    # 4. Đảo ngược scale
+    # 4. Inverse scale
     y_test_true = scaler.inverse_transform(y_test_scaled)
     y_test_pred = scaler.inverse_transform(y_pred_scaled)
 
     accuracy_actual = 1 - mean_absolute_percentage_error(y_test_true, y_test_pred)
     print(f"Test Accuracy (Actual): {accuracy_actual * 100:.2f}%")
 
-    # 5. Vẽ biểu đồ và lưu file
-    print("Đang vẽ biểu đồ kết quả...")
+    # 5. Plot graph and save file
+    print("Plotting results graph...")
     df = pd.read_csv(config.RAW_DATA_PATH)
     df['Date'] = pd.to_datetime(df['Date'])
     test_size = df[df.Date.dt.year == config.TEST_YEAR].shape[0]
@@ -55,7 +55,7 @@ def evaluate_model():
     plt.grid(color='white')
 
     plt.savefig(config.PLOT_PATH)
-    print(f"Đã lưu biểu đồ kết quả tại: {config.PLOT_PATH}")
+    print(f"Saved results plot at: {config.PLOT_PATH}")
 
 
 if __name__ == "__main__":
