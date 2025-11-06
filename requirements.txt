@@ -1,8 +1,0 @@
-
-#pip install streamlit tensorflow pandas numpy PyYAML matplotlib
-streamlit
-tensorflow
-pandas
-numpy
-matplotlib
-#
