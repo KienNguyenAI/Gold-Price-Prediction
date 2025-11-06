@@ -1,9 +1,13 @@
 import tensorflow as tf
 from keras import Model
 from keras.layers import Input, Dense, Dropout, LSTM
+from src import config_loader as config  # <-- THAY ĐỔI Ở ĐÂY
 
 
-def define_model(window_size=60):
+def define_model(window_size=config.WINDOW_SIZE):  # <-- Dùng config
+    """
+    Định nghĩa kiến trúc mô hình LSTM.
+    """
     input1 = Input(shape=(window_size, 1))
     x = LSTM(units=64, return_sequences=True)(input1)
     x = Dropout(0.2)(x)

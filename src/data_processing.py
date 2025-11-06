@@ -3,17 +3,11 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 import joblib
 import os
+from src import config_loader as config  # <-- THAY ĐỔI Ở ĐÂY
 
 
-RAW_DATA_PATH = 'data/raw/gold_2013_2023.csv'
-PROCESSED_DATA_PATH = 'data/processed/gold_clean_2013_2023.csv'
-FINAL_DATA_DIR = 'data/final'
-SCALER_PATH = 'models/price_scaler.pkl'
-
-TEST_YEAR = 2022
-WINDOW_SIZE = 60
-
-def create_dataset(data, window_size=60):
+# --- Hàm trợ giúp (không đổi) ---
+def create_dataset(data, window_size=config.WINDOW_SIZE):  # <-- Dùng config
     """Tạo bộ dữ liệu cửa sổ trượt."""
     X, y = [], []
     for i in range(window_size, len(data)):
@@ -21,14 +15,28 @@ def create_dataset(data, window_size=60):
         y.append(data[i, 0])
     return np.array(X), np.array(y)
 
-def process_data():
-    print("Bắt đầu xử lý dữ liệu...")
-    os.makedirs(PROCESSED_DATA_PATH.rpartition('/')[0], exist_ok=True)
-    os.makedirs(FINAL_DATA_DIR, exist_ok=True)
-    os.makedirs(SCALER_PATH.rpartition('/')[0], exist_ok=True)
 
-    # 1. Tải và làm sạch (từ cells 7, 12, 14, 16)
-    df = pd.read_csv(RAW_DATA_PATH)
+# --- Hàm chính ---
+def process_data():
+    """
+    Tải dữ liệu thô, làm sạch, chuẩn hóa và tạo cửa sổ trượt.
+    Lưu các file kết quả vào data/final/ và models/
+    """
+    print("Bắt đầu xử lý dữ liệu...")
+
+    # Đảm bảo các thư mục tồn tại (dùng biến từ config)
+    os.makedirs(os.path.dirname(config.PROCESSED_DATA_PATH), exist_ok=True)
+    os.makedirs(config.FINAL_DATA_DIR, exist_ok=True)
+    os.makedirs(config.MODEL_DIR, exist_ok=True)
+
+    # 1. Tải và làm sạch cơ bản
+    try:
+        df = pd.read_csv(config.RAW_DATA_PATH)  # <-- Dùng config
+    except FileNotFoundError:
+        print(f"Lỗi: Không tìm thấy file dữ liệu thô tại: {config.RAW_DATA_PATH}")
+        print("Vui lòng đảm bảo file 'Gold Price (2013-2023).csv' nằm trong 'data/raw/'")
+        return
+
     df.drop(['Vol.', 'Change %'], axis=1, inplace=True)
 
     df['Date'] = pd.to_datetime(df['Date'])
@@ -39,32 +47,30 @@ def process_data():
     df[NumCols] = df[NumCols].replace({',': ''}, regex=True)
     df[NumCols] = df[NumCols].astype('float64')
 
-    # Lưu file đã làm sạch
-    df.to_csv(PROCESSED_DATA_PATH, index=False)
-    print(f"Đã lưu dữ liệu đã làm sạch vào: {PROCESSED_DATA_PATH}")
+    df.to_csv(config.PROCESSED_DATA_PATH, index=False)  # <-- Dùng config
+    print(f"Đã lưu dữ liệu đã làm sạch vào: {config.PROCESSED_DATA_PATH}")
 
     # 2. Tách Train/Test
-    test_size = df[df.Date.dt.year == TEST_YEAR].shape[0]
+    test_size = df[df.Date.dt.year == config.TEST_YEAR].shape[0]  # <-- Dùng config
     train_data_series = df.Price[:-test_size]
 
-    # 3. Chuẩn hóa (Scaling) - Sửa lỗi rò rỉ dữ liệu từ notebook
+    # 3. Chuẩn hóa (Scaling)
     scaler = MinMaxScaler()
     train_data_scaled = scaler.fit_transform(train_data_series.values.reshape(-1, 1))
 
-    # Lưu scaler lại để dùng cho predict.py
-    joblib.dump(scaler, SCALER_PATH)
-    print(f"Đã lưu scaler vào: {SCALER_PATH}")
+    joblib.dump(scaler, config.SCALER_PATH)  # <-- Dùng config
+    print(f"Đã lưu scaler vào: {config.SCALER_PATH}")
 
-    # 4. Tạo cửa sổ trượt cho Train
-    X_train, y_train = create_dataset(train_data_scaled, WINDOW_SIZE)
+    # 4. Tạo cửa sổ trượt (windowing) cho Train
+    X_train, y_train = create_dataset(train_data_scaled)  # window_size đã có trong hàm
 
-    # 5. Tạo cửa sổ trượt  cho Test
-    test_data_series = df.Price[-test_size - WINDOW_SIZE:]
+    # 5. Tạo cửa sổ trượt (windowing) cho Test
+    test_data_series = df.Price[-test_size - config.WINDOW_SIZE:]  # <-- Dùng config
     test_data_scaled = scaler.transform(test_data_series.values.reshape(-1, 1))
 
-    X_test, y_test = create_dataset(test_data_scaled, WINDOW_SIZE)
+    X_test, y_test = create_dataset(test_data_scaled)
 
-    # 6. Reshape (từ cell 39)
+    # 6. Reshape
     X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
     X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
     y_train = np.reshape(y_train, (-1, 1))
@@ -74,12 +80,13 @@ def process_data():
     print(f"Shapes: X_test: {X_test.shape}, y_test: {y_test.shape}")
 
     # 7. Lưu các file numpy
-    np.save(os.path.join(FINAL_DATA_DIR, 'X_train.npy'), X_train)
-    np.save(os.path.join(FINAL_DATA_DIR, 'y_train.npy'), y_train)
-    np.save(os.path.join(FINAL_DATA_DIR, 'X_test.npy'), X_test)
-    np.save(os.path.join(FINAL_DATA_DIR, 'y_test.npy'), y_test)
-    print(f"Đã lưu các file .npy vào thư mục: {FINAL_DATA_DIR}")
+    np.save(os.path.join(config.FINAL_DATA_DIR, 'X_train.npy'), X_train)
+    np.save(os.path.join(config.FINAL_DATA_DIR, 'y_train.npy'), y_train)
+    np.save(os.path.join(config.FINAL_DATA_DIR, 'X_test.npy'), X_test)
+    np.save(os.path.join(config.FINAL_DATA_DIR, 'y_test.npy'), y_test)
+    print(f"Đã lưu các file .npy vào thư mục: {config.FINAL_DATA_DIR}")
 
 
 if __name__ == "__main__":
+    # Đảm bảo chạy script này từ thư mục gốc (vd: python src/data_processing.py)
     process_data()
