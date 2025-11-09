@@ -1,7 +1,7 @@
 {
   "data": {
-    "raw_path": "data/raw/gold_2013_2023.csv",
-    "processed_path": "data/processed/gold_price_2013_2023.csv",
+    "raw_path": "data/raw/gold_2013_2025.csv",
+    "processed_path": "data/processed/gold_price_2013_2025.csv",
     "final_dir": "data/final"
   },
   "models": {
@@ -14,7 +14,7 @@
     "plot_path": "reports/figures/actual_vs_predicted.png"
   },
   "params": {
-    "test_year": 2022,
+    "test_year": 2024,
     "window_size": 60,
     "epochs": 150,
     "batch_size": 32
