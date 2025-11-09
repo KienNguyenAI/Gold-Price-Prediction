@@ -15,7 +15,7 @@ def define_model(window_size=config.WINDOW_SIZE):
     x = Dropout(0.2)(x)
     x = LSTM(units=64)(x)
     x = Dropout(0.2)(x)
-    x = Dense(32, activation='softmax')(x)
+    x = Dense(32, activation='relu')(x)
     dnn_output = Dense(1)(x)
 
     model = Model(inputs=input1, outputs=[dnn_output])

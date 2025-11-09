@@ -9,9 +9,7 @@ from src import config_loader as config
 
 
 def evaluate_model():
-    """
-    Load the trained model, predict on the test set, and report results.
-    """
+
     print("Loading model and test data...")
     model = load_model(config.MODEL_PATH)
     scaler = joblib.load(config.SCALER_PATH)
@@ -37,13 +35,13 @@ def evaluate_model():
     print("Plotting results graph...")
     df = pd.read_csv(config.RAW_DATA_PATH)
     df['Date'] = pd.to_datetime(df['Date'])
+    df.sort_values(by='Date', ascending=True, inplace=True)
+    df.reset_index(drop=True, inplace=True)
     test_size = df[df.Date.dt.year == config.TEST_YEAR].shape[0]
     test_dates = df['Date'].iloc[-test_size:]
 
     os.makedirs(config.FIGURE_DIR, exist_ok=True)
     plt.figure(figsize=(15, 6), dpi=150)
-    plt.rcParams['axes.facecolor'] = 'yellow'
-    plt.rc('axes', edgecolor='white')
 
     plt.plot(test_dates, y_test_true, color='blue', lw=2, label='Actual Test Data')
     plt.plot(test_dates, y_test_pred, color='red', lw=2, label='Predicted Test Data')
@@ -52,7 +50,7 @@ def evaluate_model():
     plt.xlabel('Date', fontsize=12)
     plt.ylabel('Price', fontsize=12)
     plt.legend(loc='upper left', prop={'size': 12})
-    plt.grid(color='white')
+    plt.grid(color='black')
 
     plt.savefig(config.PLOT_PATH)
     print(f"Saved results plot at: {config.PLOT_PATH}")
