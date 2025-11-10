@@ -1,7 +1,7 @@
 {
   "data": {
-    "raw_path": "data/raw/gold_2013_2025.csv",
-    "processed_path": "data/processed/gold_price_2013_2025.csv",
+    "raw_path": "data/raw/gold_2013_2023(Yfinance).csv",
+    "processed_path": "data/processed/gold_clean_2013_2023(Yfinance).csv",
     "final_dir": "data/final"
   },
   "models": {

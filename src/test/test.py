@@ -4,7 +4,7 @@ import os
 
 # --- Cấu hình ---
 ticker_symbol = "GC=F"  # Mã ticker cho Gold Dec 25 (GC=F)
-csv_file_name = "gold_price_2013_2025.csv"  # Tên file CSV để lưu
+csv_file_name = "gold_price_2013_2023(Yfinance).csv"  # Tên file CSV để lưu
 
 # --- Tải dữ liệu ---
 print(f"Đang tiến hành tải dữ liệu cho mã: {ticker_symbol}...")
@@ -15,7 +15,7 @@ try:
 
     # 2. Tải lịch sử dữ liệu từ ngày 01/02/2013 đến hiện tại
     # ĐÃ THAY ĐỔI: Thay vì 'period="max"', chúng ta dùng 'start'
-    hist_data = ticker_data.history(start="2013-02-01")
+    hist_data = ticker_data.history(start="2013-02-01", end="2022-12-30")
 
     if hist_data.empty:
         print(f"Không tìm thấy dữ liệu cho mã {ticker_symbol}. Vui lòng kiểm tra lại mã ticker.")

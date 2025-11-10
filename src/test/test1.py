@@ -2,8 +2,8 @@ import pandas as pd
 import numpy as np
 
 # Tên file đầu vào và đầu ra
-file_moi = "gold_price_2013_2025.csv"
-output_filename = "../../data/raw/gold_2013_2025.csv"
+file_moi = "gold_price_2013_2023(Yfinance).csv"
+output_filename = "../../data/raw/gold_2013_2023(Yfinance).csv"
 
 print(f"Đang xử lý file: {file_moi}")
 
